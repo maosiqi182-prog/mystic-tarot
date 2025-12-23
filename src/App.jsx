@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import './App.css'; // 🔥 恢复引用你的 CSS 文件，找回原来的美观样式
+import './App.css'; // 确保引入了刚才写的 CSS
 import { questions } from './utils/questions';
 import { QUESTION_CATEGORIES } from './utils/QuestionMapping';
 import { HandController } from './components/HandController';
 import { ShufflingDeck } from './components/ShufflingDeck';
 import { DeckFan } from './components/DeckFan';
-// 🔥 关键修复：把背景特效组件找回来！
-import ManifestationEffect from './components/ManifestationEffect'; 
+import ManifestationEffect from './components/ManifestationEffect';
 
 function App() {
   const [gamePhase, setGamePhase] = useState('welcome');
@@ -49,11 +48,10 @@ function App() {
   };
 
   const handleCardDraw = (cardId) => {
-      // 模拟抽牌逻辑
       const newCard = { id: cardId, name: 'The Fool', image: '/cards/major/00_the_fool.webp', upright: true };
       setDrawnCards([...drawnCards, newCard]);
       if (drawnCards.length + 1 >= 1) {
-           setGamePhase('reading'); // 这里暂时只抽一张就去解读，你可以改回 3 张
+           setGamePhase('reading');
       }
   }
 
@@ -65,44 +63,51 @@ function App() {
   }
 
   return (
-    <div className="app-container"> {/* 🔥 恢复使用 CSS 类名 */}
-      
-      {/* 🔥 关键修复：把满屏飘牌的背景特效加回来了！ */}
-      <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0 }}>
-        <ManifestationEffect />
-      </div>
+    <div className="app-container">
+      {/* 背景特效 */}
+      <ManifestationEffect />
 
       {/* 顶部标题栏 */}
-      <header className="main-header" style={{ position: 'relative', zIndex: 10 }}>
-        <h1>CHANNEL YOUR ENERGY</h1>
-        {/* 动态提示文字 */}
-        <p className="instruction-text">
+      <header className="main-header">
+        <motion.h1 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1 }}
+        >
+          CHANNEL YOUR ENERGY
+        </motion.h1>
+        <motion.p 
+          className="instruction-text"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+        >
             {gamePhase === 'welcome' && "跟随内心的指引，选择你的方向"}
             {gamePhase === 'question' && "聆听心声，做出你的选择"}
             {gamePhase === 'shuffle' && (isMobile ? "点击屏幕洗牌" : "挥动双手注入能量洗牌")}
             {gamePhase === 'drawing' && (isMobile ? "点击抽取卡牌" : "移动手势悬停并捏合抽取卡牌")}
             {gamePhase === 'reading' && "你的命运解读"}
-        </p>
+        </motion.p>
       </header>
 
-      {/* 主要内容区域 */}
-      <main className="main-content" style={{ position: 'relative', zIndex: 10 }}>
+      {/* 主内容区域 */}
+      <main className="main-content">
         <AnimatePresence mode='wait'>
           
-          {/* 1. 欢迎页 (分类选择) */}
+          {/* 1. 欢迎页 */}
           {gamePhase === 'welcome' && (
             <motion.div
               key="welcome"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
               className="welcome-container"
             >
               <div className="category-grid">
                 {QUESTION_CATEGORIES.map((category) => (
-                  <motion.button
+                  <motion.div
                     key={category.id}
-                    className="category-card" // 恢复原来的样式类
+                    className="category-card"
                     onClick={() => handleCategorySelect(category.id)}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -110,7 +115,7 @@ function App() {
                     <span className="category-icon">{category.icon}</span>
                     <h3 className="category-name">{category.name}</h3>
                     <p className="category-desc">{category.description}</p>
-                  </motion.button>
+                  </motion.div>
                 ))}
               </div>
             </motion.div>
@@ -130,10 +135,10 @@ function App() {
                 {currentQuestion.options.map((option, index) => (
                   <motion.button
                     key={index}
-                    className="option-button" // 恢复原来的样式类
+                    className="option-button"
                     onClick={() => handleQuestionAnswered(index)}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                   >
                     {option.text}
                   </motion.button>
@@ -149,7 +154,7 @@ function App() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="shuffle-container"
+              style={{ width: '100%', height: '100%' }}
             >
               <ShufflingDeck
                 onShuffleComplete={handleShuffleComplete}
@@ -166,7 +171,7 @@ function App() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="drawing-container"
+              style={{ width: '100%', height: '100%' }}
             >
               <DeckFan
                 onCardDraw={handleCardDraw}
@@ -178,18 +183,18 @@ function App() {
             </motion.div>
           )}
 
-           {/* 5. 解读页 (占位) */}
+           {/* 5. 解读页 */}
            {gamePhase === 'reading' && (
             <motion.div key="reading" initial={{opacity:0}} animate={{opacity:1}} style={{textAlign:'center', color:'white'}}>
-                <h2>解读页面（开发中...）</h2>
-                <button onClick={handleRestart} style={{padding:'10px 20px', marginTop:'20px', cursor:'pointer'}}>重新开始</button>
+                <h2>解读页面</h2>
+                <button onClick={handleRestart} className="option-button" style={{marginTop:'20px'}}>重新开始</button>
             </motion.div>
            )}
 
         </AnimatePresence>
       </main>
 
-      {/* 摄像头控件 (保持右上角，且只在需要时显示) */}
+      {/* 摄像头控件 */}
       {showHudPhases.includes(gamePhase) && !isMobile && (
         <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 2000 }}>
             <HandController 

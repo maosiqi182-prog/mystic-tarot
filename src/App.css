@@ -1,42 +1,177 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+/* src/App.css */
+
+/* 全局字体与重置 */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap');
+
+:root {
+  --gold-primary: #ffd700;
+  --gold-glow: rgba(255, 215, 0, 0.5);
+  --bg-dark: #0f0c29;
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 215, 0, 0.2);
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-family: 'Cinzel', serif; /* 恢复神秘字体 */
+  background-color: var(--bg-dark);
+  color: #fff;
+  overflow: hidden; /* 防止滚动条 */
+}
+
+/* 主容器 */
+.app-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* 深紫黑色渐变背景 */
+  background: radial-gradient(circle at center, #302b63 0%, #0f0c29 100%);
+}
+
+/* 顶部标题栏 */
+.main-header {
+  z-index: 10;
   text-align: center;
+  margin-top: 4vh;
+  margin-bottom: 2vh;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.main-header h1 {
+  font-size: 3rem;
+  margin: 0;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  /* 金色渐变文字 */
+  background: linear-gradient(to bottom, #fffebb 0%, #ffd700 50%, #daa520 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 10px var(--gold-glow));
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
+.instruction-text {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 1rem;
+  letter-spacing: 0.1em;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+/* 主内容区域 */
+.main-content {
+  z-index: 10;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding-bottom: 5vh;
+}
+
+/* 欢迎页：分类卡片网格 */
+.welcome-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 四列布局 */
+  gap: 2rem;
+  max-width: 1200px;
+  padding: 0 2rem;
+}
+
+/* 🔥 卡片样式：恢复黑金磨砂质感 */
+.category-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px); /* 磨砂玻璃 */
+  border: 1px solid var(--glass-border);
+  padding: 2rem;
+  border-radius: 15px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #fff;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+.category-card:hover {
+  background: rgba(255, 215, 0, 0.1); /* 悬停微金 */
+  border-color: var(--gold-primary);
+  box-shadow: 0 0 20px var(--gold-glow);
+  transform: translateY(-5px);
+}
+
+.category-icon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.category-name {
+  font-size: 1.2rem;
+  color: var(--gold-primary);
+  margin-bottom: 0.5rem;
+}
+
+.category-desc {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.6);
+  line-height: 1.4;
+}
+
+/* 问题页样式 */
+.question-container {
+  text-align: center;
+  max-width: 800px;
+}
+
+.question-text {
+  font-size: 2rem;
+  margin-bottom: 3rem;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+.options-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.option-button {
+  background: transparent;
+  border: 1px solid var(--gold-primary);
+  color: var(--gold-primary);
+  padding: 1rem 3rem;
+  font-size: 1.2rem;
+  font-family: 'Cinzel', serif;
+  cursor: pointer;
+  transition: all 0.3s;
+  border-radius: 50px; /* 圆角按钮 */
+}
+
+.option-button:hover {
+  background: var(--gold-primary);
+  color: #000;
+  box-shadow: 0 0 15px var(--gold-glow);
+}
+
+/* 手机端适配 */
+@media (max-width: 768px) {
+  .category-grid {
+    grid-template-columns: 1fr; /* 手机变单列 */
+    gap: 1rem;
   }
-  to {
-    transform: rotate(360deg);
+  .main-header h1 {
+    font-size: 1.8rem;
   }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
 }
