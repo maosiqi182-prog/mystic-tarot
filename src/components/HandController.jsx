@@ -1,17 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-// 🔥 修复关键：加上 'export' 关键字，变成具名导出
-// 这样 App.jsx 里的 import { HandController } 就能找到它了！
+// ✅ 修复点 1：保留 export function (具名导出)，满足 App.jsx 的需求
 export function HandController({ onHandMoved, onHandUpdate, showFullSkeleton, style }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const handsRef = useRef(null);
   const cameraRef = useRef(null);
-  
-  // 加载状态，防止 React 抢跑
   const [isSdkLoaded, setIsSdkLoaded] = useState(false);
 
-  // 1. 检测 SDK 是否加载完毕
+  // 检测 SDK 是否加载
   useEffect(() => {
     const checkSdk = () => {
       if (window.Hands && window.Camera) {
@@ -20,30 +17,22 @@ export function HandController({ onHandMoved, onHandUpdate, showFullSkeleton, st
       }
       return false;
     };
-
     if (checkSdk()) return;
-
     const timerId = setInterval(() => {
-      if (checkSdk()) {
-        clearInterval(timerId);
-      }
+      if (checkSdk()) clearInterval(timerId);
     }, 100);
-
     return () => clearInterval(timerId);
   }, []);
 
-  // 2. 初始化逻辑
+  // 初始化逻辑
   useEffect(() => {
     if (!isSdkLoaded) return;
-
     const Hands = window.Hands;
     const Camera = window.Camera;
 
     try {
         handsRef.current = new Hands({
-          locateFile: (file) => {
-            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
-          }
+          locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
         });
 
         handsRef.current.setOptions({
@@ -58,9 +47,7 @@ export function HandController({ onHandMoved, onHandUpdate, showFullSkeleton, st
         if (videoRef.current) {
           cameraRef.current = new Camera(videoRef.current, {
             onFrame: async () => {
-              if (handsRef.current) {
-                await handsRef.current.send({ image: videoRef.current });
-              }
+              if (handsRef.current) await handsRef.current.send({ image: videoRef.current });
             },
             width: 640,
             height: 480
@@ -68,7 +55,7 @@ export function HandController({ onHandMoved, onHandUpdate, showFullSkeleton, st
           cameraRef.current.start();
         }
     } catch (error) {
-        console.error("MediaPipe 初始化失败:", error);
+        console.error("MediaPipe Init Error:", error);
     }
 
     return () => {
@@ -79,30 +66,21 @@ export function HandController({ onHandMoved, onHandUpdate, showFullSkeleton, st
 
   const onResults = (results) => {
     if (!canvasRef.current || !videoRef.current) return;
-
     const canvasCtx = canvasRef.current.getContext('2d');
     const { width, height } = canvasRef.current;
     
     canvasCtx.save();
     canvasCtx.clearRect(0, 0, width, height);
     
-    if (showFullSkeleton) {
-        canvasCtx.drawImage(results.image, 0, 0, width, height);
-    }
+    if (showFullSkeleton) canvasCtx.drawImage(results.image, 0, 0, width, height);
 
     if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
       const landmarks = results.multiHandLandmarks[0];
       const indexFingerTip = landmarks[8];
-      
       const x = (0.5 - indexFingerTip.x) * 2; 
       const y = (0.5 - indexFingerTip.y) * 2;
-
       const thumbTip = landmarks[4];
-      const distance = Math.sqrt(
-          Math.pow(thumbTip.x - indexFingerTip.x, 2) + 
-          Math.pow(thumbTip.y - indexFingerTip.y, 2)
-      );
-      
+      const distance = Math.sqrt(Math.pow(thumbTip.x - indexFingerTip.x, 2) + Math.pow(thumbTip.y - indexFingerTip.y, 2));
       const isGrabbing = distance < 0.05;
       
       if (onHandUpdate) onHandUpdate(x, y, isGrabbing, true);
@@ -125,4 +103,6 @@ export function HandController({ onHandMoved, onHandUpdate, showFullSkeleton, st
     </div>
   );
 }
-// 🔥 注意：这里底部不再有 export default HandController; 了
+
+// ✅ 修复点 2：同时保留 default export，防止其他地方用另一种方式引用
+export default HandController;
