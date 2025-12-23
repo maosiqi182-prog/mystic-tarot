@@ -1,0 +1,69 @@
+/* src/index.css */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;800&family=Lato:wght@300;400&display=swap');
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #000;
+  font-family: 'Lato', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- 核心材质：流动的古铜金 --- */
+.text-gradient-gold {
+  background: linear-gradient(
+    to bottom,
+    #bf953f,
+    #fcf6ba,
+    #b38728,
+    #fbf5b7,
+    #aa771c
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent; /* 文字本身透明，显示背景的金属渐变 */
+  text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.5); /* 增加厚重感 */
+}
+
+/* --- 按钮样式：星光微尘 --- */
+.mystic-button {
+  position: relative;
+  background: rgba(10, 5, 20, 0.4); /* 极深的紫黑色背景 */
+  border: 1px solid rgba(191, 149, 63, 0.3); /* 暗金色边框，很淡 */
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  backdrop-filter: blur(5px);
+}
+
+/* 按钮悬停：亮起微光，而不是刺眼的黄 */
+.mystic-button:hover {
+  background: rgba(25, 10, 40, 0.6);
+  border-color: rgba(252, 246, 186, 0.6); /* 亮金色 */
+  box-shadow: 
+    0 0 15px rgba(191, 149, 63, 0.2), /* 内部金色辉光 */
+    inset 0 0 20px rgba(0, 0, 0, 0.8); /* 外部深邃阴影 */
+  transform: translateY(-3px);
+}
+
+/* 按钮内的文字标题 */
+.mystic-button h3 {
+  transition: all 0.3s ease;
+  color: #d4af37; /* 默认暗金 */
+}
+
+.mystic-button:hover h3 {
+  color: #fff; /* 悬停变白，像被照亮 */
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+/* --- 呼吸动画：更加幽灵般 --- */
+@keyframes phantom-breathe {
+  0% { opacity: 0.4; transform: scale(0.98); text-shadow: 0 0 10px rgba(100, 100, 255, 0.2); }
+  50% { opacity: 1; transform: scale(1.02); text-shadow: 0 0 25px rgba(191, 149, 63, 0.6); }
+  100% { opacity: 0.4; transform: scale(0.98); text-shadow: 0 0 10px rgba(100, 100, 255, 0.2); }
+}
+
+.animate-breathe {
+  animation: phantom-breathe 6s infinite ease-in-out;
+}
