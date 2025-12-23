@@ -1,62 +1,84 @@
-import React, { useEffect, useRef } from 'react';
-
-// ❌ 不需要再 import 任何 MediaPipe 的包了，防止打包报错
-// import { Hands } from '@mediapipe/hands'; 
+import React, { useEffect, useRef, useState } from 'react';
 
 function HandController({ onHandMoved, onHandUpdate, showFullSkeleton, style }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const handsRef = useRef(null);
   const cameraRef = useRef(null);
+  
+  // 新增：加载状态，防止 React 抢跑
+  const [isSdkLoaded, setIsSdkLoaded] = useState(false);
 
+  // 1. 专门用来检测 SDK 是否加载完毕的 Effect
   useEffect(() => {
-    // 🔥 核心修改：直接从 window 对象获取全局变量
-    // 因为我们在 index.html 里引入了脚本，这里一定能取到
+    // 检查函数
+    const checkSdk = () => {
+      if (window.Hands && window.Camera) {
+        setIsSdkLoaded(true); // 加载完了！
+        return true;
+      }
+      return false;
+    };
+
+    // 如果一开始就有，直接通过
+    if (checkSdk()) return;
+
+    // 如果没有，设置一个定时器，每 100ms 检查一次
+    const timerId = setInterval(() => {
+      if (checkSdk()) {
+        clearInterval(timerId); // 找到了，停止检查
+      }
+    }, 100);
+
+    // 清理定时器
+    return () => clearInterval(timerId);
+  }, []);
+
+  // 2. 只有当 SDK 加载完毕(isSdkLoaded 为 true)后，才初始化摄像头
+  useEffect(() => {
+    if (!isSdkLoaded) return; // 没加载完就别动，防止报错
+
+    // 获取全局变量
     const Hands = window.Hands;
     const Camera = window.Camera;
 
-    if (!Hands || !Camera) {
-        console.error("等待 MediaPipe 加载中...");
-        // 如果网速慢没加载出来，稍微等一下（实际情况通常很快）
-        return;
-    }
-
-    // 初始化 Hands
-    handsRef.current = new Hands({
-      locateFile: (file) => {
-        // 使用 CDN 加载模型文件，确保路径正确
-        return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
-      }
-    });
-
-    handsRef.current.setOptions({
-      maxNumHands: 1,
-      modelComplexity: 1,
-      minDetectionConfidence: 0.5,
-      minTrackingConfidence: 0.5
-    });
-
-    handsRef.current.onResults(onResults);
-
-    if (videoRef.current) {
-      cameraRef.current = new Camera(videoRef.current, {
-        onFrame: async () => {
-          if (handsRef.current) {
-            await handsRef.current.send({ image: videoRef.current });
+    try {
+        handsRef.current = new Hands({
+          locateFile: (file) => {
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
           }
-        },
-        width: 640,
-        height: 480
-      });
-      cameraRef.current.start();
+        });
+
+        handsRef.current.setOptions({
+          maxNumHands: 1,
+          modelComplexity: 1,
+          minDetectionConfidence: 0.5,
+          minTrackingConfidence: 0.5
+        });
+
+        handsRef.current.onResults(onResults);
+
+        if (videoRef.current) {
+          cameraRef.current = new Camera(videoRef.current, {
+            onFrame: async () => {
+              if (handsRef.current) {
+                await handsRef.current.send({ image: videoRef.current });
+              }
+            },
+            width: 640,
+            height: 480
+          });
+          cameraRef.current.start();
+        }
+    } catch (error) {
+        console.error("MediaPipe 初始化失败:", error);
     }
 
     return () => {
-      // 清理资源
       if (handsRef.current) try { handsRef.current.close(); } catch(e){}
       if (cameraRef.current) try { cameraRef.current.stop(); } catch(e){}
     };
-  }, [onHandMoved, onHandUpdate, showFullSkeleton]);
+  }, [isSdkLoaded, onHandMoved, onHandUpdate, showFullSkeleton]); // 监听 isSdkLoaded
 
   const onResults = (results) => {
     if (!canvasRef.current || !videoRef.current) return;
@@ -89,6 +111,7 @@ function HandController({ onHandMoved, onHandUpdate, showFullSkeleton, style }) 
       if (onHandUpdate) onHandUpdate(x, y, isGrabbing, true);
       if (onHandMoved) onHandMoved(Math.abs(x) * 50);
 
+      // 只有当 drawing_utils 加载了才画线
       if (showFullSkeleton && window.drawConnectors && window.drawLandmarks) {
           window.drawConnectors(canvasCtx, landmarks, window.HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 2});
           window.drawLandmarks(canvasCtx, landmarks, {color: '#FF0000', lineWidth: 1});
@@ -103,6 +126,7 @@ function HandController({ onHandMoved, onHandUpdate, showFullSkeleton, style }) 
     <div style={{ position: 'relative', ...style }}>
       <video ref={videoRef} style={{ display: 'none' }} playsInline />
       <canvas ref={canvasRef} width={640} height={480} style={{ width: '100%', height: '100%', transform: 'scaleX(-1)', opacity: showFullSkeleton ? 0.8 : 0 }} />
+      {/* 如果还没加载完，可以在这里显示一个小 loading，或者什么都不显示 */}
     </div>
   );
 }

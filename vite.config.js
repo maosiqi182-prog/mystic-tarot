@@ -1,110 +1,18 @@
-import React, { useEffect, useRef } from 'react';
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
 
-// ❌ 不需要再 import 任何 MediaPipe 的包了，防止打包报错
-// import { Hands } from '@mediapipe/hands'; 
-
-function HandController({ onHandMoved, onHandUpdate, showFullSkeleton, style }) {
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
-  const handsRef = useRef(null);
-  const cameraRef = useRef(null);
-
-  useEffect(() => {
-    // 🔥 核心修改：直接从 window 对象获取全局变量
-    // 因为我们在 index.html 里引入了脚本，这里一定能取到
-    const Hands = window.Hands;
-    const Camera = window.Camera;
-
-    if (!Hands || !Camera) {
-        console.error("等待 MediaPipe 加载中...");
-        // 如果网速慢没加载出来，稍微等一下（实际情况通常很快）
-        return;
-    }
-
-    // 初始化 Hands
-    handsRef.current = new Hands({
-      locateFile: (file) => {
-        // 使用 CDN 加载模型文件，确保路径正确
-        return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+// 回归最简配置，把打包任务完全交给 Vercel 的默认设置
+// 我们不再在打包层面做任何黑科技，只保留代理防止 AI 报错
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    host: true,
+    proxy: {
+      '/deepseek': {
+        target: 'https://api.deepseek.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/deepseek/, '')
       }
-    });
-
-    handsRef.current.setOptions({
-      maxNumHands: 1,
-      modelComplexity: 1,
-      minDetectionConfidence: 0.5,
-      minTrackingConfidence: 0.5
-    });
-
-    handsRef.current.onResults(onResults);
-
-    if (videoRef.current) {
-      cameraRef.current = new Camera(videoRef.current, {
-        onFrame: async () => {
-          if (handsRef.current) {
-            await handsRef.current.send({ image: videoRef.current });
-          }
-        },
-        width: 640,
-        height: 480
-      });
-      cameraRef.current.start();
     }
-
-    return () => {
-      // 清理资源
-      if (handsRef.current) try { handsRef.current.close(); } catch(e){}
-      if (cameraRef.current) try { cameraRef.current.stop(); } catch(e){}
-    };
-  }, [onHandMoved, onHandUpdate, showFullSkeleton]);
-
-  const onResults = (results) => {
-    if (!canvasRef.current || !videoRef.current) return;
-
-    const canvasCtx = canvasRef.current.getContext('2d');
-    const { width, height } = canvasRef.current;
-    
-    canvasCtx.save();
-    canvasCtx.clearRect(0, 0, width, height);
-    
-    if (showFullSkeleton) {
-        canvasCtx.drawImage(results.image, 0, 0, width, height);
-    }
-
-    if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-      const landmarks = results.multiHandLandmarks[0];
-      const indexFingerTip = landmarks[8];
-      
-      const x = (0.5 - indexFingerTip.x) * 2; 
-      const y = (0.5 - indexFingerTip.y) * 2;
-
-      const thumbTip = landmarks[4];
-      const distance = Math.sqrt(
-          Math.pow(thumbTip.x - indexFingerTip.x, 2) + 
-          Math.pow(thumbTip.y - indexFingerTip.y, 2)
-      );
-      
-      const isGrabbing = distance < 0.05;
-      
-      if (onHandUpdate) onHandUpdate(x, y, isGrabbing, true);
-      if (onHandMoved) onHandMoved(Math.abs(x) * 50);
-
-      if (showFullSkeleton && window.drawConnectors && window.drawLandmarks) {
-          window.drawConnectors(canvasCtx, landmarks, window.HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 2});
-          window.drawLandmarks(canvasCtx, landmarks, {color: '#FF0000', lineWidth: 1});
-      }
-    } else {
-        if (onHandUpdate) onHandUpdate(0, 0, false, false);
-    }
-    canvasCtx.restore();
-  };
-
-  return (
-    <div style={{ position: 'relative', ...style }}>
-      <video ref={videoRef} style={{ display: 'none' }} playsInline />
-      <canvas ref={canvasRef} width={640} height={480} style={{ width: '100%', height: '100%', transform: 'scaleX(-1)', opacity: showFullSkeleton ? 0.8 : 0 }} />
-    </div>
-  );
-}
-
-export default HandController;
+  }
+})
