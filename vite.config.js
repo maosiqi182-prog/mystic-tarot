@@ -1,9 +1,16 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import path from 'path'
 
-// 恢复到最简配置，只保留 DeepSeek 代理
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      // 🔥 核心修复：强制指定 MediaPipe 的浏览器版本入口文件
+      // 这能防止打包工具引用到错误的 Node.js 版本文件
+      '@mediapipe/hands': path.resolve(__dirname, 'node_modules/@mediapipe/hands/hands.js'),
+    }
+  },
   server: {
     host: true,
     proxy: {
@@ -14,9 +21,10 @@ export default defineConfig({
       }
     }
   },
-  // 唯一需要保留的保险措施：允许混合模块转换 (解决 MediaPipe 兼容性)
   build: {
+    // 保持最稳妥的打包设置
     commonjsOptions: {
+      include: [/node_modules/, /@mediapipe\/hands/],
       transformMixedEsModules: true
     }
   }
