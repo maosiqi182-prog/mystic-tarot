@@ -1,30 +1,44 @@
 // src/utils/QuestionMapping.js
 
-// 这里定义用户看到的问题类型，以及它们对应的幕后牌阵
+import React from 'react';
+
 export const QUESTION_CATEGORIES = [
   {
     id: 'daily',
-    label: '今日指引 (Daily Guidance)',
-    description: '获取今日的能量重点与建议。',
-    spreadType: 'SINGLE' // 对应 LayoutEngine 里的 SINGLE
+    name: '今日运势',
+    description: '探索今天的能量与指引',
+    icon: '🌟'
   },
   {
     id: 'love',
-    label: '情感关系 (Love & Relationships)',
-    description: '洞察当前关系的状态与未来走向。',
-    spreadType: 'LOVE_PYRAMID' // 对应 LayoutEngine 里的 LOVE_PYRAMID
+    name: '爱情关系',
+    description: '洞察感情发展的可能性',
+    icon: '❤️'
   },
   {
     id: 'career',
-    label: '事业发展 (Career Path)',
-    description: '分析过去、现在的基础与未来的机遇。',
-    spreadType: 'TIME_FLOW' // 对应 LayoutEngine 里的 TIME_FLOW
+    name: '事业发展',
+    description: '分析工作与职业的机遇',
+    icon: '💼'
   },
-  // 你可以在这里继续添加更多类型...
+  {
+    id: 'decision',
+    name: '抉择指引',
+    description: '在两个选项中寻找方向',
+    icon: '⚖️'
+  }
 ];
 
-// 辅助函数：根据类别ID找到对应的牌阵类型
-export const getSpreadByType = (categoryId) => {
-  const category = QUESTION_CATEGORIES.find(c => c.id === categoryId);
-  return category ? category.spreadType : 'SINGLE';
+export const getSpreadByType = (type) => {
+  switch (type) {
+    case 'daily':
+      return { name: '单张牌阵', cardCount: 1 };
+    case 'love':
+    case 'decision':
+      return { name: '二择一牌阵', cardCount: 2 };
+    case 'career':
+      return { name: '圣三角牌阵', cardCount: 3 };
+    default:
+      return { name: '自由牌阵', cardCount: 3 };
+  }
 };
