@@ -1,20 +1,9 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import path from 'path'
-import { fileURLToPath } from 'url'
 
-// 🔥 修复关键：用新语法定义 __dirname，防止 Vercel 报错
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-
+// 恢复到最简配置，完全依赖 HandController.jsx 里的代码修复
 export default defineConfig({
   plugins: [react()],
-  resolve: {
-    alias: {
-      // 强制指向浏览器版文件
-      '@mediapipe/hands': path.resolve(__dirname, 'node_modules/@mediapipe/hands/hands.js'),
-    }
-  },
   server: {
     host: true,
     proxy: {
@@ -27,7 +16,7 @@ export default defineConfig({
   },
   build: {
     commonjsOptions: {
-      include: [/node_modules/, /@mediapipe\/hands/],
+      // 这是一个安全且必要的设置，用来处理旧版库
       transformMixedEsModules: true
     }
   }
